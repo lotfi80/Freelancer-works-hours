@@ -1,0 +1,35 @@
+{
+  "name": "freelancer-works-hours",
+  "version": "1.0.0",
+  "description": "",
+  "main": "backend/server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --watch src --exec node backend/server.js",
+    "start": "node backend/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lotfi80/Freelancer-works-hours.git"
+  },
+  "keywords": [],
+  "author": "Lotfi Slim",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lotfi80/Freelancer-works-hours/issues"
+  },
+  "homepage": "https://github.com/lotfi80/Freelancer-works-hours#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.1",
+    "resend": "^4.5.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
