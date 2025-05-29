@@ -11,5 +11,4 @@ const connectToDataBase = async () => {
     throw error;
   }
 };
-
 export default connectToDataBase;
