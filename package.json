@@ -6,7 +6,11 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+<<<<<<< HEAD
     "dev": "nodemon backend/server.js",
+=======
+    "dev": "nodemon --watch src --exec node backend/server.js",
+>>>>>>> 7ee45a3 (added some package express cookie-parser resend)
     "start": "node backend/server.js"
   },
   "repository": {
