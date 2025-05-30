@@ -29,3 +29,20 @@ export const verificationTokenEmailTemplate = (verificationToken) => `
 </body>
 </html>
 `;
+export const WELCOME_EMAIL_TEMPLATE = (name) => `
+  <html>
+    <body style="background-color:#fff;color:#212121;font-family:sans-serif;">
+    <table align="center" width="100%" style="max-width:600px;padding:20px;margin:0 auto;background-color:#f9f9f9;">
+    <tr>
+      <td style="text-align:center;">
+        <h2>Hi ${name} !</h2>
+        
+        
+        <p>Welcome You are now verified!</p>
+      </td>
+    </tr>
+  </table>
+    
+    </body>
+  </html>
+`;

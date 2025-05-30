@@ -10,8 +10,25 @@ export const generateJWTToken = (res, userId) => {
     httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
     secure: process.env.NODE_ENV === "production", // Use secure cookies in production
     sameSite: "strict", // Helps prevent CSRF attacks
-    maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expiration time (30 days)
+    maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expiration time (7 days)
   });
 
   return token;
+};
+
+export const generateRereshToken = (res, userId) => {
+  const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: "30d", // Refresh token will expire in 30 days
+  });
+  console.log(refreshToken);
+
+  // Set the refresh token in a cookie
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
+    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+    sameSite: "strict", // Helps prevent CSRF attacks
+    maxAge: 30 * 24 * 60 * 60 * 1000, // Cookie expiration time (30 days)
+  });
+
+  return refreshToken;
 };
