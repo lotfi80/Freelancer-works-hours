@@ -1,6 +1,12 @@
 import User from "../models/user.js";
+// import { generateVerificationToken } from "../utils/generateVerificationToken.js";
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";
-import { generateRereshToken } from "../utils/generateJWTToken.js";
+// import { generateRereshToken } from "../utils/generateJWTToken.js";
+import {
+  //   createRefreshToken,
+  //   generateRefreshToken,
+  generateJWTToken,
+} from "../utils/generateJWTToken.js";
 import {
   sendVerificationEmail,
   sendWelcomeEmail,
@@ -8,6 +14,8 @@ import {
   sendResetSuccessEmail,
 } from "../resend/email.js";
 import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const signup = async (req, res) => {
   const { user_name, first_name, last_name, email, password } = req.body;
@@ -61,24 +69,46 @@ export const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ message: "Invalid password" });
     }
-    const isVerified = user.isVerified;
-    if (!isVerified) {
-      return res
-        .status(400)
-        .json({ message: "Please verify your email first" });
+
+    if (!user.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email first",
+      });
     }
-    generateRereshToken(res, user._id);
+
+    const accessToken = generateJWTToken(res, user._id);
+
+    // ✅ HIER: Refresh Token generieren und als Cookie speichern
+    const refreshToken = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_REFRESH_SECRET,
+      {
+        expiresIn: "10m",
+      }
+    );
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 10 * 60 * 1000,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Login successful",
+      accessToken,
       user: {
         ...user._doc,
         password: undefined,
@@ -91,51 +121,266 @@ export const login = async (req, res) => {
       .json({ success: false, message: "Internal server error" });
   }
 };
-export const refresh = (req, res) => {
-  const cookies = req.cookies;
-  if (!cookies?.jwt) {
-    return res.status(401).json({ message: "Unauthorized" });
+
+// export const login = async (req, res) => {
+//   const { email, password } = req.body;
+//   try {
+//     if (!email || !password) {
+//       return res.status(400).json({ message: "All fields are required" });
+//     }
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(400).json({ message: "User not found" });
+//     }
+//     const isPasswordValid = await bcrypt.compare(password, user.password);
+//     if (!isPasswordValid) {
+//       return res.status(400).json({ message: "Invalid password" });
+//     }
+//     const isVerified = user.isVerified;
+//     if (!isVerified) {
+//       return res.status(403).json({
+//         // 403 Forbidden is more appropriate
+//         success: false,
+//         message: "Please verify your email first",
+//       });
+//     }
+
+//     const accessToken = generateJWTToken(res, user._id);
+//     console.log("Access Token:", accessToken);
+//     return res.status(200).json({
+//       success: true,
+//       message: "Login successful",
+//       accessToken,
+//       user: {
+//         ...user._doc,
+//         password: undefined,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error during login:", error);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: "Internal server error" });
+//   }
+// };
+// export const login = async (req, res) => {
+//   const { email, password } = req.body;
+
+//   try {
+//     // Validate input
+//     if (!email || !password) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All fields are required",
+//       });
+//     }
+
+//     // Find user
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid credentials", // Better security practice
+//       });
+//     }
+
+//     // Verify password
+//     const isPasswordValid = await bcrypt.compare(password, user.password);
+//     if (!isPasswordValid) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid credentials", // Generic message for security
+//       });
+//     }
+
+//     // Check verification status
+//     if (!user.isVerified) {
+//       return res.status(403).json({
+//         // 403 Forbidden is more appropriate
+//         success: false,
+//         message: "Please verify your email first",
+//       });
+//     }
+
+//     // Generate tokens
+//     const accessToken = generateRereshToken(res, user._id);
+//     // const refreshToken = generateJWTToken(res, user._id);
+
+//     // Prepare user data without password
+//     const userData = {
+//       _id: user._id,
+//       email: user.email,
+//       name: user.name,
+//       isVerified: user.isVerified,
+//       // include other necessary fields
+//     };
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Login successful",
+//       accessToken, // Send access token in response
+//       refreshToken, // Optionally send refresh token too
+//       user: userData,
+//     });
+//   } catch (error) {
+//     console.error("Login error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: process.env.NODE_ENV === "development" ? error.message : undefined,
+//     });
+//   }
+// };
+// export const login = async (req, res) => {
+//   const { email, password } = req.body;
+
+//   try {
+//     // Validate input
+//     if (!email || !password) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All fields are required",
+//       });
+//     }
+
+//     // Find user
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid credentials",
+//       });
+//     }
+
+//     // Verify password
+//     const isPasswordValid = await bcrypt.compare(password, user.password);
+//     if (!isPasswordValid) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid credentials",
+//       });
+//     }
+
+//     // Check verification status
+//     if (!user.isVerified) {
+//       return res.status(403).json({
+//         success: false,
+//         message: "Please verify your email first",
+//       });
+//     }
+
+//     // ✅ NUR Refresh Token generieren (für unseren neuen Ansatz)
+//     const refreshToken = createRefreshToken(res, user._id);
+
+//     // Prepare user data without password
+//     const userData = {
+//       _id: user._id,
+//       email: user.email,
+//       name: user.name,
+//       isVerified: user.isVerified,
+//       refreshToken,
+//     };
+
+//     // ✅ KEIN Access Token in der Response - wird über /refresh geholt
+//     return res.status(200).json({
+//       success: true,
+//       message: "Login successful",
+//       user: userData,
+//       // Kein accessToken hier!
+//     });
+//   } catch (error) {
+//     console.error("Login error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: process.env.NODE_ENV === "development" ? error.message : undefined,
+//     });
+//   }
+// };
+
+// export const refresh = (req, res) => {
+//   const cookies = req.cookies;
+//   if (!cookies?.jwt) {
+//     return res.status(401).json({ message: "Unauthorized" });
+//   }
+//   const refreshToken = cookies.jwt;
+//   jwt.verify(
+//     refreshToken,
+//     process.env.ACCESS_REFRESH_TOKEN,
+//     async (err, decoded) => {
+//       if (err) {
+//         return res.status(403).json({ message: "Forbidden" });
+//       }
+//       const foundUser = await User.findById(decoded.UserInfo.id).exec();
+//       if (!foundUser) {
+//         return res.status(401).json({ message: "Unauthorized" });
+//       }
+//       const accessToken = jwt.sign(
+//         {
+//           userId: foundUser._id,
+//           UserInfo: {
+//             user_name: foundUser.user_name,
+//             first_name: foundUser.first_name,
+//             last_name: foundUser.last_name,
+//             email: foundUser.email,
+//           },
+//           isAdmin: foundUser.isAdmin,
+//           isVerified: foundUser.isVerified,
+//         },
+//         process.env.ACCESS_TOKEN_SECRET,
+//         { expiresIn: "25s" }
+//       );
+//       return res.status(200).json({
+//         accessToken,
+//         email: foundUser.email,
+//         first_name: foundUser.first_name,
+//         last_name: foundUser.last_name,
+//         user_name: foundUser.user_name,
+//       });
+//     }
+//   );
+// };
+import jwt from "jsonwebtoken";
+
+export const handleRefreshToken = (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+  console.log("Refresh Token:", refreshToken);
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token missing" });
   }
-  const refreshToken = cookies.jwt;
-  jwt.verify(
-    refreshToken,
-    process.env.ACCESS_REFRESH_TOKEN,
-    async (err, decoded) => {
-      if (err) {
-        return res.status(403).json({ message: "Forbidden" });
-      }
-      const foundUser = await User.findById(decoded.UserInfo.id).exec();
-      if (!foundUser) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      const accessToken = jwt.sign(
-        {
-          userId: foundUser._id,
-          UserInfo: {
-            user_name: foundUser.user_name,
-            first_name: foundUser.first_name,
-            last_name: foundUser.last_name,
-            email: foundUser.email,
-          },
-          isAdmin: foundUser.isAdmin,
-          isVerified: foundUser.isVerified,
-        },
-        process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "25s" }
-      );
-      return res.status(200).json({
-        accessToken,
-        email: foundUser.email,
-        first_name: foundUser.first_name,
-        last_name: foundUser.last_name,
-        user_name: foundUser.user_name,
-      });
-    }
-  );
+
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    // Token ist gültig – neuen Access Token erstellen
+    const newAccessToken = jwt.sign(
+      { userId: decoded.userId },
+      process.env.JWT_SECRET,
+      { expiresIn: "2m" }
+    );
+
+    // Access-Token als Cookie zurückgeben
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 2 * 60 * 1000, // 2 Minuten
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Access token refreshed",
+    });
+  } catch (err) {
+    return res
+      .status(403)
+      .json({ message: "Invalid or expired refresh token" });
+  }
 };
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("refreshToken"); // Clear the JWT token cookie
+    res.clearCookie("accessToken"); // Clear the JWT token cookie
     res
       .status(200)
       .json({ success: true, message: "User logged out successfully" });
@@ -230,6 +475,37 @@ export const resetPassword = async (req, res) => {
       .json({ success: false, message: "Internal server error" });
   }
 };
+export const getUserProfile = async (req, res) => {
+  const userId = req.userId; // Assuming userId is set in the request by authentication middleware
+  try {
+    // const user = await User.findById(req.userId).select("-password");
+    const user = await User.findById(req.userId).select("-password");
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    return res.status(200).json({ success: true, user });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+
+// export const getUserProfile = async (req, res) => {
+//   try {
+//     const user = await User.findById(req.userId).select("-password");
+//     if (!user) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "User not found" });
+//     }
+//     res.status(200).json({ success: true, user });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: "Internal server error" });
+//   }
+// };
 //
 
 //re_USbRG7oY_KbBdVHXkAhcYQvRHjn4QTjUK
