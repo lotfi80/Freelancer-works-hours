@@ -1,12 +1,6 @@
 import User from "../models/user.js";
-// import { generateVerificationToken } from "../utils/generateVerificationToken.js";
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";
-// import { generateRereshToken } from "../utils/generateJWTToken.js";
-import {
-  //   createRefreshToken,
-  //   generateRefreshToken,
-  generateJWTToken,
-} from "../utils/generateJWTToken.js";
+import { generateJWTToken } from "../utils/generateJWTToken.js";
 import {
   sendVerificationEmail,
   sendWelcomeEmail,
@@ -30,9 +24,6 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
     const verificationToken = generateVerificationToken();
-    console.log(verificationToken);
-
-    console.log(verificationToken);
     const user = new User({
       user_name,
       first_name,
@@ -42,12 +33,35 @@ export const signup = async (req, res) => {
       verificationToken: verificationToken,
       verificationExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Token valid for 24 hours
     });
+    const accessToken = generateJWTToken(res, user._id);
+    console.log(accessToken);
+
     await user.save();
-    generateRereshToken(res, user._id);
+    // const accessToken = generateJWTToken(res, user._id);
+    const refreshToken = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_REFRESH_SECRET,
+      {
+        expiresIn: "10m",
+      }
+    );
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 10 * 60 * 1000,
+    });
+    // res.cookie("accessToken", accessToken, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "strict",
+    //   maxAge: 2 * 60 * 1000, // 2 minutes
+    // });
+
     await sendVerificationEmail(user.email, verificationToken);
 
     return res.status(201).json({
-      succuss: true,
+      success: true,
       message: "User created successfully",
       user: {
         id: user._id,
@@ -183,14 +197,20 @@ export const verifyEmail = async (req, res) => {
       });
     }
     user.isVerified = true;
-    user.verificationToken = undefined; // Clear the verification token
-    user.verificationExpiresAt = undefined; // Clear the expiration date
+    user.verificationToken = undefined;
+    user.verificationExpiresAt = undefined;
     await user.save();
-    await sendWelcomeEmail(user.email, user.name); // Optional: Send a welcome email after verification
+    await sendWelcomeEmail(user.email, user.name);
     res
       .status(200)
       .json({ success: true, message: "Email verified successfully" });
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error verifying email:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while verifying email",
+    });
+  }
 };
 export const forgotPassword = async (req, res) => {
   const email = req.body.email;
@@ -257,7 +277,7 @@ export const resetPassword = async (req, res) => {
   }
 };
 export const getUserProfile = async (req, res) => {
-  const userId = req.userId; // Assuming userId is set in the request by authentication middleware
+  const userId = req.userId;
   try {
     // const user = await User.findById(req.userId).select("-password");
     const user = await User.findById(req.userId).select("-password");

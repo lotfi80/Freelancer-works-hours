@@ -9,7 +9,8 @@ export const generateJWTToken = (res, userId) => {
   res.cookie("accessToken", accessToken, {
     httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
     secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-    sameSite: "strict", // Helps prevent CSRF attacks
+    // sameSite: "strict", // Helps prevent CSRF attacks
+    sameSite: "lax",
     // maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expiration time (7 days)
     maxAge: 2 * 60 * 1000, // Cookie expiration time (2 minutes)
   });
@@ -54,7 +55,8 @@ export const generateRereshToken = (res, userId) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
     secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-    sameSite: "strict", // Helps prevent CSRF attacks
+    // sameSite: "strict", // Helps prevent CSRF attacks
+    sameSite: "lax",
     maxAge: 30 * 24 * 60 * 60 * 1000, // Cookie expiration time (30 days)
   });
 
