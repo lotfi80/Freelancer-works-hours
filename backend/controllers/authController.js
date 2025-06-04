@@ -42,14 +42,15 @@ export const signup = async (req, res) => {
       { userId: user._id },
       process.env.JWT_REFRESH_SECRET,
       {
-        expiresIn: "10m",
+        expiresIn: "1h", // Refresh token will expire in 1 hour
       }
     );
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 10 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: +1 * 60 * 60 * 1000,
     });
     // res.cookie("accessToken", accessToken, {
     //   httpOnly: true,
@@ -109,7 +110,7 @@ export const login = async (req, res) => {
       { userId: user._id },
       process.env.JWT_REFRESH_SECRET,
       {
-        expiresIn: "10m",
+        expiresIn: "1h", // Refresh token will expire in 1 hour
       }
     );
 
@@ -117,7 +118,7 @@ export const login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 10 * 60 * 1000,
+      maxAge: +1 * 60 * 60 * 1000, // 1 hour
     });
 
     return res.status(200).json({
@@ -152,7 +153,7 @@ export const handleRefreshToken = (req, res) => {
     const newAccessToken = jwt.sign(
       { userId: decoded.userId },
       process.env.JWT_SECRET,
-      { expiresIn: "2m" }
+      { expiresIn: "5m" }
     );
 
     // Access-Token als Cookie zurückgeben
@@ -160,11 +161,12 @@ export const handleRefreshToken = (req, res) => {
       httpOnly: true,
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
-      maxAge: 2 * 60 * 1000, // 2 Minuten
+      maxAge: 5 * 60 * 1000, // 5 Minuten
     });
 
     return res.status(200).json({
       success: true,
+      accessToken: newAccessToken,
       message: "Access token refreshed",
     });
   } catch (err) {

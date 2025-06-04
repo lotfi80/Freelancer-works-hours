@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, useContext, createContext } from "react";
+import fetchWithAuth from "../pages/fetchWithAuth";
 
 export const UserContext = createContext();
 
@@ -8,20 +9,54 @@ export const UserProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // NEU
 
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     try {
+  //       const res = await fetch("http://localhost:3000/api/user/profile", {
+  //         method: "GET",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         credentials: "include",
+  //       });
+  //       console.log("Checking authentication...", res);
+  //       const data = await res.json();
+
+  //       console.log("Auth check response:", data.user);
+  //       if (res.ok && data.user) {
+  //         setUser(data.user);
+  //         setIsAuthenticated(true);
+  //       } else {
+  //         setUser(null);
+  //         setIsAuthenticated(false);
+  //       }
+  //     } catch (err) {
+  //       console.error("Auth check failed", err);
+  //       setUser(null);
+  //       setIsAuthenticated(false);
+  //     } finally {
+  //       setIsLoading(false); // <- Fertig geladen
+  //     }
+  //   };
+
+  //   checkAuth();
+  // }, []);
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/user/profile", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-        console.log("Checking authentication...", res);
-        const data = await res.json();
+        const res = await fetchWithAuth(
+          "http://localhost:3000/api/user/profile",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-        console.log("Auth check response:", data.user);
+        const data = await res.json();
+        console.log("Auth check response:", data);
+
         if (res.ok && data.user) {
           setUser(data.user);
           setIsAuthenticated(true);
@@ -34,7 +69,7 @@ export const UserProvider = ({ children }) => {
         setUser(null);
         setIsAuthenticated(false);
       } finally {
-        setIsLoading(false); // <- Fertig geladen
+        setIsLoading(false);
       }
     };
 
@@ -47,9 +82,17 @@ export const UserProvider = ({ children }) => {
     setIsAuthenticated(true);
   };
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
+  const logout = async () => {
+    try {
+      await fetch("http://localhost:3000/api/auth/logout", {
+        method: "POST",
+        credentials: "include", // WICHTIG: Sendet Cookies zum Backend
+      });
+      setUser(null); // User-State zurücksetzen
+      setIsAuthenticated(false); // Authentifizierungsstatus zurücksetzen
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (

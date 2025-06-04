@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 export const generateJWTToken = (res, userId) => {
   const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: "2m", // Token will expire in 30 days
+    expiresIn: "5m", // Token will expire in 30 days
   });
 
   // Set the JWT token in a cookie
@@ -12,7 +12,7 @@ export const generateJWTToken = (res, userId) => {
     // sameSite: "strict", // Helps prevent CSRF attacks
     sameSite: "lax",
     // maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expiration time (7 days)
-    maxAge: 2 * 60 * 1000, // Cookie expiration time (2 minutes)
+    maxAge: 5 * 60 * 1000, // Cookie expiration time (5 minutes)
   });
 
   return accessToken;
@@ -47,7 +47,7 @@ export const generateJWTToken = (res, userId) => {
 
 export const generateRereshToken = (res, userId) => {
   const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: "30d", // Refresh token will expire in 30 days
+    expiresIn: "1h", // Refresh token will expire in 1 hour
   });
   console.log(refreshToken);
 
@@ -57,7 +57,8 @@ export const generateRereshToken = (res, userId) => {
     secure: process.env.NODE_ENV === "production", // Use secure cookies in production
     // sameSite: "strict", // Helps prevent CSRF attacks
     sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000, // Cookie expiration time (30 days)
+    // maxAge: 30 * 24 * 60 * 60 * 1000, // Cookie expiration time (30 days)
+    maxAge: 1 * 60 * 60 * 1000,
   });
 
   return refreshToken;
