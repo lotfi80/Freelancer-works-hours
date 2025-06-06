@@ -1,21 +1,31 @@
 import { Routes, Route } from "react-router-dom";
-import SignupPage from "./pages/SignUpPage";
+import SignupPage from "./pages/auth-pages/SignUpPage";
 import { UserProvider } from "./context/userContext";
-import VerificationEmailPage from "./pages/VerificationEmailPage";
-import LoginPage from "./pages/LoginPage";
+import VerificationEmailPage from "./pages/auth-pages/VerificationEmailPage";
+import LoginPage from "./pages/auth-pages/LoginPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import ProfilePage from "./pages/profilePage";
+import ForgotPasswordPage from "./pages/auth-pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth-pages/ResetPasswordPage";
+import HomePage from "./pages/HomePage";
+// import LogoutButton from "./pages/auth-pages/LogoutButton";
+
 function App() {
   return (
     <>
       <div>
         <UserProvider>
           <Routes>
-            <Route path="/" element={<h1>Login Page</h1>} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/verify-email" element={<VerificationEmailPage />} />
-            <Route path="/logout" element={<logOut />} />
+            {/* <Route path="/logout" element={<LogoutButton />} /> */}
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route
+              path="/reset-password/:token"
+              element={<ResetPasswordPage />}
+            />
 
             <Route
               path="/profile"

@@ -35,7 +35,7 @@
 //     </Link>
 //   );
 // };
-import { useUser } from "../context/userContext";
+import { useUser } from "../../context/userContext";
 import { useNavigate } from "react-router-dom";
 
 export const LogoutButton = () => {

@@ -246,6 +246,7 @@ export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
     const { password } = req.body;
+
     if (!token || !password) {
       return res
         .status(400)
@@ -290,6 +291,17 @@ export const getUserProfile = async (req, res) => {
     }
     return res.status(200).json({ success: true, user });
   } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    return res.status(200).json({ success: true, users });
+  } catch (error) {
+    console.error("Error fetching users:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });

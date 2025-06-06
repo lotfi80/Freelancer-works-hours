@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../context/userContext";
+import { useUser } from "../../context/userContext";
 
 export default function LoginPage() {
   const apiUrl = "http://localhost:3000/api/auth/login";
@@ -52,7 +52,7 @@ export default function LoginPage() {
 
         console.log("Login successful:", data);
 
-        navigate("/profile", { replace: true });
+        navigate("/", { replace: true });
       }
     } catch (error) {
       console.error("Error during login:", error);
