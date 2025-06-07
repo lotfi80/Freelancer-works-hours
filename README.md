@@ -45,5 +45,3 @@ npx shadcn@latest add input-otp
 jsconfig.json datei selbst erstellt laut anweisungen , sieh die datei
 
 #
-
-https://www.youtube.com/watch?v=88tvVqeRwn0&t=12929s
