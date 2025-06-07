@@ -46,9 +46,4 @@ jsconfig.json datei selbst erstellt laut anweisungen , sieh die datei
 
 #
 
-https://zustand.docs.pmnd.rs/getting-started/introduction
-eine minimalistische State-Management-Lösung für React
-
-## LINK zur video
-
 https://www.youtube.com/watch?v=88tvVqeRwn0&t=12929s
