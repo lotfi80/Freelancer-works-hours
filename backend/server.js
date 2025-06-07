@@ -5,6 +5,7 @@ import authRouter from "./routes/auth-route.js";
 import userRouter from "./routes/getUserProfiil.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+// import clientsRouter from "./routes/clientsRoute.js";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use(
 
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
+// app.use("/api/clients", clientsRouter);
 
 connectToDataBase();
 const PORT = process.env.PORT || 5000;

@@ -1,4 +1,4 @@
-import User from "../models/user.js";
+import User from "../models/User.js";
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";
 import { generateJWTToken } from "../utils/generateJWTToken.js";
 import {
@@ -294,6 +294,44 @@ export const getUserProfile = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });
+  }
+};
+export const updateUserProfile = async (req, res) => {
+  const userId = req.userId;
+  const { first_name, last_name, user_name, birth_date } = req.body;
+
+  try {
+    // Nur die Felder aktualisieren, die im Request übergeben wurden
+    const updates = {};
+    if (first_name !== undefined) updates.first_name = first_name;
+    if (last_name !== undefined) updates.last_name = last_name;
+    if (user_name !== undefined) updates.user_name = user_name;
+    if (birth_date !== undefined) updates.birth_date = birth_date;
+
+    // Direkt mit findByIdAndUpdate aktualisieren (optimiert)
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updates,
+      { new: true } // Gibt den aktualisierten User zurück
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
 export const getAllUsers = async (req, res) => {

@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 import bcrypt from "bcryptjs";
-const userSchema = new mongoose.Schema(
+const UserSchema = new Schema(
   {
     user_name: {
       type: String,
@@ -22,6 +22,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
+      lowercase: true,
       match: [
         /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
         "Ungültige E-Mail",
@@ -30,6 +32,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      minlength: 8,
     },
     isVerified: {
       type: Boolean,
@@ -40,6 +43,8 @@ const userSchema = new mongoose.Schema(
       default: false,
       description: "Gibt Administratorrechte",
     },
+    clients: [{ type: Types.ObjectId, ref: "Client" }],
+    timeEntries: [{ type: Types.ObjectId, ref: "TimeEntry" }],
     resetPasswordToken: String,
     resetPasswordExpiresAt: Date,
     verificationToken: String,
@@ -51,11 +56,11 @@ const userSchema = new mongoose.Schema(
 );
 
 // muss ich beim testen wieder checken
-userSchema.pre("save", async function (next) {
+UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model("User", UserSchema);
 export default User;
